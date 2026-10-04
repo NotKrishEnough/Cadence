@@ -1,9 +1,10 @@
 slint::include_modules!();
 
-use lofty::prelude::Accessor;
+use lofty::prelude::{Accessor, TaggedFileExt};
 use serde::{Deserialize, Serialize};
 use slint::{Image, ModelRc, VecModel};
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
 #[cfg(target_os = "android")]
@@ -22,50 +23,48 @@ struct Player {
 }
 
 #[cfg(target_os = "android")]
-fn android_service_call(method: &str, signature: &str, args: &[JValue]) -> bool {
+fn with_android_env<R>(f: impl for<'a> FnOnce(&mut jni::Env<'a>, ndk_context::AndroidContext) -> R) -> Option<R> {
     let ctx = ndk_context::android_context();
-    let Ok(vm) = (unsafe { JavaVM::from_raw(ctx.vm().cast()) }) else { return false; };
-    let Ok(mut env) = vm.attach_current_thread() else { return false; };
-    let Ok(class) = env.find_class("com/notkrishenough/cadence/PlaybackService") else { return false; };
-    env.call_static_method(class, method, signature, args).is_ok()
+    let vm = unsafe { JavaVM::from_raw(ctx.vm().cast()) };
+    vm.attach_current_thread(|env| Ok::<_, jni::errors::Error>(f(env, ctx))).ok()
+}
+
+#[cfg(target_os = "android")]
+fn android_service_call(method: &str) -> bool {
+    with_android_env(|env, ctx| {
+        let Ok(class) = env.find_class("com/notkrishenough/cadence/PlaybackService") else { return false; };
+        let context = unsafe { JObject::from_raw(env, ctx.context().cast()) };
+        let result = env.call_static_method(
+            class, method, "(Landroid/content/Context;)V",
+            &[JValue::Object(&context)],
+        ).is_ok();
+        std::mem::forget(context);
+        result
+    }).unwrap_or(false)
 }
 
 #[cfg(target_os = "android")]
 fn android_start_playback(path: &str, title: &str, artist: &str) -> bool {
-    let ctx = ndk_context::android_context();
-    let Ok(vm) = (unsafe { JavaVM::from_raw(ctx.vm().cast()) }) else { return false; };
-    let Ok(mut env) = vm.attach_current_thread() else { return false; };
-    let Ok(class) = env.find_class("com/notkrishenough/cadence/PlaybackService") else { return false; };
-    let context = unsafe { JObject::from_raw(ctx.context().cast()) };
-    let Ok(path) = env.new_string(path) else { return false; };
-    let Ok(title) = env.new_string(title) else { return false; };
-    let Ok(artist) = env.new_string(artist) else { return false; };
-    env.call_static_method(
-        class,
-        "startPlayback",
-        "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
-        &[
-            JValue::Object(&context),
-            JValue::Object(&path),
-            JValue::Object(&title),
-            JValue::Object(&artist),
-        ],
-    ).is_ok()
-}
-
-#[cfg(target_os = "android")]
-fn android_control(method: &str) -> bool {
-    let ctx = ndk_context::android_context();
-    let Ok(vm) = (unsafe { JavaVM::from_raw(ctx.vm().cast()) }) else { return false; };
-    let Ok(mut env) = vm.attach_current_thread() else { return false; };
-    let Ok(class) = env.find_class("com/notkrishenough/cadence/PlaybackService") else { return false; };
-    let context = unsafe { JObject::from_raw(ctx.context().cast()) };
-    env.call_static_method(
-        class,
-        method,
-        "(Landroid/content/Context;)V",
-        &[JValue::Object(&context)],
-    ).is_ok()
+    with_android_env(|env, ctx| {
+        let Ok(class) = env.find_class("com/notkrishenough/cadence/PlaybackService") else { return false; };
+        let context = unsafe { JObject::from_raw(env, ctx.context().cast()) };
+        let Ok(path) = env.new_string(path) else { std::mem::forget(context); return false; };
+        let Ok(title) = env.new_string(title) else { std::mem::forget(context); return false; };
+        let Ok(artist) = env.new_string(artist) else { std::mem::forget(context); return false; };
+        let result = env.call_static_method(
+            class,
+            "startPlayback",
+            "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+            &[
+                JValue::Object(&context),
+                JValue::Object(&path),
+                JValue::Object(&title),
+                JValue::Object(&artist),
+            ],
+        ).is_ok();
+        std::mem::forget(context);
+        result
+    }).unwrap_or(false)
 }
 
 impl Player {
@@ -139,8 +138,6 @@ impl Player {
         {
             let track = &self.tracks[self.index];
             if android_start_playback(&track.path, &track.title, &track.artist) {
-                self.sink = None;
-                self.stream = None;
                 self.playing = true;
                 return;
             }
@@ -157,8 +154,8 @@ impl Player {
         #[cfg(target_os = "android")]
         if self.sink.is_none() {
             if self.playing {
-                if android_control("pausePlayback") { self.playing = false; return; }
-            } else if android_control("resumePlayback") {
+                if android_service_call("pausePlayback") { self.playing = false; return; }
+            } else if android_service_call("resumePlayback") {
                 self.playing = true;
                 return;
             }
@@ -204,15 +201,15 @@ impl Player {
 }
 
 fn make_song_model(p: &Player) -> ModelRc<Song> {
-    VecModel::from(p.tracks.iter().map(|t| Song {
+    Rc::new(VecModel::from(p.tracks.iter().map(|t| Song {
         title: t.title.clone().into(), artist: t.artist.clone().into(), album: t.album.clone().into(),
         path: t.path.clone().into(), artwork: t.artwork.as_ref().and_then(|x| Image::load_from_path(x).ok()).unwrap_or_default()
-    }).collect::<Vec<_>>()).into()
+    }).collect::<Vec<_>>())).into()
 }
 fn make_queue_model(p: &Player) -> ModelRc<QueueSong> {
-    VecModel::from(p.queue.iter().filter_map(|i| p.tracks.get(*i)).map(|t| QueueSong {
+    Rc::new(VecModel::from(p.queue.iter().filter_map(|i| p.tracks.get(*i)).map(|t| QueueSong {
         title: t.title.clone().into(), artist: t.artist.clone().into()
-    }).collect::<Vec<_>>()).into()
+    }).collect::<Vec<_>>())).into()
 }
 fn update_ui(ui: &MainWindow, p: &Player) {
     let (title, artist, album, artwork) = p.tracks.get(p.index).map(|t| (
