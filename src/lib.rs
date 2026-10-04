@@ -8,7 +8,7 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
 #[cfg(target_os = "android")]
-use jni::{jni_sig_str, jni_str, objects::{JObject, JValue}, JavaVM};
+use jni::{jni_sig, jni_str, objects::{JObject, JValue}, JavaVM};
 
 #[derive(Clone)]
 struct Track { title: String, artist: String, album: String, path: String, artwork: Option<PathBuf> }
@@ -41,7 +41,7 @@ fn android_service_call(method_name: &str) -> bool {
             _ => return false,
         };
         let result = env.call_static_method(
-            class, method, jni_sig_str!("(Landroid/content/Context;)V"),
+            class, method, jni_sig!((context: android.content.Context) -> void),
             &[JValue::Object(&context)],
         ).is_ok();
         std::mem::forget(context);
@@ -60,7 +60,7 @@ fn android_start_playback(path: &str, title: &str, artist: &str) -> bool {
         let result = env.call_static_method(
             class,
             jni_str!("startPlayback"),
-            jni_sig_str!("(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V"),
+            jni_sig!((context: android.content.Context, path: java.lang.String, title: java.lang.String, artist: java.lang.String) -> void),
             &[
                 JValue::Object(&context),
                 JValue::Object(&path),
