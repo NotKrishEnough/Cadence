@@ -48,8 +48,7 @@ name = "android.permission.POST_NOTIFICATIONS"
 [package.metadata.android.application]
 label = "Cadence"
 
-[package.metadata.android.application.activity]
-name = "android.app.NativeActivity"
+[[package.metadata.android.application.activity]]
 exported = true
 
 [[package.metadata.android.application.activity.intent_filter]]
