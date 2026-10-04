@@ -97,8 +97,12 @@ impl Player {
             if self.playing { sink.pause(); self.playing = false; } else { sink.play(); self.playing = true; }
         } else { self.play_current(); }
     }
-    fn select(&mut self, index: usize) {
-        if index < self.tracks.len() { self.index = index; self.queue_pos = self.queue.iter().position(|i| *i == index).unwrap_or(0); self.play_current(); }
+    fn select_path(&mut self, path: &str) {
+        if let Some(index) = self.tracks.iter().position(|t| t.path == path) {
+            self.index = index;
+            self.queue_pos = self.queue.iter().position(|i| *i == index).unwrap_or(0);
+            self.play_current();
+        }
     }
     fn next(&mut self) {
         if self.tracks.is_empty() { return; }
@@ -162,7 +166,7 @@ fn run_app() {
     let p = player.clone(); let weak = ui.as_weak();
     ui.on_previous(move || { if let Ok(mut p) = p.lock() { p.previous(); if let Some(ui)=weak.upgrade(){update_ui(&ui,&p);} } });
     let p = player.clone(); let weak = ui.as_weak();
-    ui.on_select_song(move |index| { if let Ok(mut p)=p.lock(){p.select(index as usize);if let Some(ui)=weak.upgrade(){update_ui(&ui,&p);}} });
+    ui.on_select_song(move |index| { if let Ok(mut p)=p.lock(){p.select_path(index.as_str());if let Some(ui)=weak.upgrade(){update_ui(&ui,&p);}} });
     let p = player.clone(); let weak = ui.as_weak();
     ui.on_toggle_favorite(move || { if let Ok(mut p)=p.lock(){p.toggle_favorite();if let Some(ui)=weak.upgrade(){update_ui(&ui,&p);}} });
     let p = player.clone(); let weak = ui.as_weak();
