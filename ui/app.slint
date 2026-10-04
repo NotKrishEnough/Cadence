@@ -1,0 +1,151 @@
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+
+export component MainWindow inherits Window {
+    width: 420px;
+    height: 860px;
+    background: #0f1013;
+    title: "Cadence";
+
+    in-out property <string> track-title: "No music yet";
+    in-out property <string> track-artist: "Add songs to /Music";
+    in-out property <string> album-title: "Cadence";
+    in-out property <int> library-count: 0;
+    in-out property <bool> playing: false;
+
+    callback play-pause();
+    callback next();
+    callback previous();
+    callback rescan();
+
+    Rectangle {
+        background: #0f1013;
+
+        VerticalBox {
+            padding-left: 22px;
+            padding-right: 22px;
+            padding-top: 28px;
+            padding-bottom: 18px;
+            spacing: 16px;
+
+            HorizontalBox {
+                height: 46px;
+                Text {
+                    text: "Cadence";
+                    color: #f7f7f8;
+                    font-size: 28px;
+                    font-weight: 700;
+                    vertical-alignment: center;
+                }
+                Rectangle { horizontal-stretch: 1; }
+                Text { text: "⋮"; color: #b8bbc4; font-size: 28px; vertical-alignment: center; }
+            }
+
+            Rectangle {
+                height: 54px;
+                border-radius: 18px;
+                background: #191b20;
+                HorizontalBox {
+                    padding-left: 16px;
+                    spacing: 10px;
+                    Text { text: "⌕"; color: #aeb2bd; font-size: 24px; vertical-alignment: center; }
+                    Text { text: "Search your music"; color: #70747f; font-size: 15px; vertical-alignment: center; }
+                }
+            }
+
+            HorizontalBox {
+                height: 42px;
+                spacing: 10px;
+                Rectangle {
+                    width: 96px;
+                    border-radius: 21px;
+                    background: #ff7a18;
+                    Text { text: "Home"; color: #101114; font-size: 14px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; }
+                }
+                Rectangle {
+                    width: 110px;
+                    border-radius: 21px;
+                    background: #1a1c21;
+                    Text { text: "Library"; color: #d4d6dc; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; }
+                }
+                Rectangle { horizontal-stretch: 1; }
+            }
+
+            Rectangle {
+                height: 150px;
+                border-radius: 28px;
+                background: #181a20;
+                VerticalBox {
+                    padding: 20px;
+                    spacing: 7px;
+                    Text { text: "YOUR LIBRARY"; color: #777b86; font-size: 11px; font-weight: 700; }
+                    Text { text: library-count + " songs"; color: #f3f3f5; font-size: 24px; font-weight: 700; }
+                    Text { text: "Offline • private • yours"; color: #a3a6b0; font-size: 13px; }
+                    TouchArea {
+                        height: 34px;
+                        clicked => { rescan(); }
+                        Rectangle {
+                            border-radius: 17px;
+                            background: #24272e;
+                            Text { text: "Scan Music"; color: #f2f2f4; font-size: 13px; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                    }
+                }
+            }
+
+            Rectangle { vertical-stretch: 1; }
+
+            Rectangle {
+                height: 350px;
+                border-radius: 30px;
+                background: #181a20;
+                VerticalBox {
+                    padding: 22px;
+                    spacing: 10px;
+
+                    Rectangle {
+                        height: 205px;
+                        border-radius: 22px;
+                        background: #252832;
+                        Text { text: "♪"; color: #ff7a18; font-size: 72px; horizontal-alignment: center; vertical-alignment: center; }
+                    }
+
+                    Text { text: track-title; color: #f7f7f8; font-size: 21px; font-weight: 700; elide: right; }
+                    Text { text: track-artist + " • " + album-title; color: #9da1ac; font-size: 14px; elide: right; }
+
+                    HorizontalBox {
+                        height: 58px;
+                        spacing: 24px;
+
+                        TouchArea {
+                            clicked => { previous(); }
+                            Text { text: "‹"; color: #e7e8eb; font-size: 38px; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+
+                        TouchArea {
+                            width: 62px;
+                            clicked => { play-pause(); }
+                            Rectangle {
+                                border-radius: 31px;
+                                background: #ff7a18;
+                                Text { text: playing ? "Ⅱ" : "▶"; color: #101114; font-size: 22px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                        }
+
+                        TouchArea {
+                            clicked => { next(); }
+                            Text { text: "›"; color: #e7e8eb; font-size: 38px; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                    }
+                }
+            }
+
+            HorizontalBox {
+                height: 52px;
+                Text { text: "⌂"; color: #ff7a18; font-size: 24px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; }
+                Text { text: "♫"; color: #777b86; font-size: 24px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; }
+                Text { text: "♥"; color: #777b86; font-size: 22px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; }
+                Text { text: "⚙"; color: #777b86; font-size: 22px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; }
+            }
+        }
+    }
+}
