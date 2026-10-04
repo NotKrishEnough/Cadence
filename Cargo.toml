@@ -48,6 +48,14 @@ name = "android.permission.POST_NOTIFICATIONS"
 [package.metadata.android.application]
 label = "Cadence"
 
+[package.metadata.android.application.activity]
+name = "android.app.NativeActivity"
+exported = true
+
+[[package.metadata.android.application.activity.intent_filter]]
+actions = ["android.intent.action.MAIN"]
+categories = ["android.intent.category.LAUNCHER"]
+
 [[package.metadata.android.application.service]]
 name = ".PlaybackService"
 enabled = true
