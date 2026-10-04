@@ -8,7 +8,7 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
 #[cfg(target_os = "android")]
-use jni::{objects::{JObject, JValue}, JavaVM};
+use jni::{jni_sig, jni_str, objects::{JObject, JValue}, JavaVM};
 
 #[derive(Clone)]
 struct Track { title: String, artist: String, album: String, path: String, artwork: Option<PathBuf> }
@@ -18,7 +18,7 @@ struct PlaylistStore { favorites: Vec<String> }
 
 struct Player {
     tracks: Vec<Track>, index: usize, queue: Vec<usize>, queue_pos: usize,
-    playing: bool, sink: Option<rodio::Sink>, stream: Option<rodio::OutputStream>,
+    playing: bool, sink: Option<rodio::Player>, stream: Option<rodio::MixerDeviceSink>,
     favorites: Vec<String>,
 }
 
@@ -30,12 +30,12 @@ fn with_android_env<R>(f: impl for<'a> FnOnce(&mut jni::Env<'a>, ndk_context::An
 }
 
 #[cfg(target_os = "android")]
-fn android_service_call(method: &str) -> bool {
+fn android_service_call(method_name: &str) -> bool {
     with_android_env(|env, ctx| {
-        let Ok(class) = env.find_class("com/notkrishenough/cadence/PlaybackService") else { return false; };
+        let Ok(class) = env.find_class(jni_str!("com/notkrishenough/cadence/PlaybackService")) else { return false; };
         let context = unsafe { JObject::from_raw(env, ctx.context().cast()) };
         let result = env.call_static_method(
-            class, method, "(Landroid/content/Context;)V",
+            class, method_name, jni_sig!("(android.content.Context)"),
             &[JValue::Object(&context)],
         ).is_ok();
         std::mem::forget(context);
@@ -53,8 +53,8 @@ fn android_start_playback(path: &str, title: &str, artist: &str) -> bool {
         let Ok(artist) = env.new_string(artist) else { std::mem::forget(context); return false; };
         let result = env.call_static_method(
             class,
-            "startPlayback",
-            "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+            jni_str!("startPlayback"),
+            jni_sig!("(android.content.Context, java.lang.String, java.lang.String, java.lang.String)"),
             &[
                 JValue::Object(&context),
                 JValue::Object(&path),
@@ -143,10 +143,10 @@ impl Player {
             }
         }
 
-        let Ok(stream) = rodio::OutputStreamBuilder::open_default_stream() else { return; };
+        let Ok(stream) = rodio::DeviceSinkBuilder::open_default_sink() else { return; };
         let Ok(file) = std::fs::File::open(&self.tracks[self.index].path) else { return; };
         let Ok(source) = rodio::Decoder::try_from(file) else { return; };
-        let sink = rodio::Sink::connect_new(stream.mixer());
+        let sink = rodio::Player::connect_new(stream.mixer());
         sink.append(source); sink.play();
         self.stream = Some(stream); self.sink = Some(sink); self.playing = true;
     }
