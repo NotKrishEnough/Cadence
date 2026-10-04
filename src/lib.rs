@@ -6,6 +6,9 @@ use slint::{Image, ModelRc, VecModel};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
+#[cfg(target_os = "android")]
+use jni::{objects::{JObject, JValue}, JavaVM};
+
 #[derive(Clone)]
 struct Track { title: String, artist: String, album: String, path: String, artwork: Option<PathBuf> }
 
@@ -16,6 +19,53 @@ struct Player {
     tracks: Vec<Track>, index: usize, queue: Vec<usize>, queue_pos: usize,
     playing: bool, sink: Option<rodio::Sink>, stream: Option<rodio::OutputStream>,
     favorites: Vec<String>,
+}
+
+#[cfg(target_os = "android")]
+fn android_service_call(method: &str, signature: &str, args: &[JValue]) -> bool {
+    let ctx = ndk_context::android_context();
+    let Ok(vm) = (unsafe { JavaVM::from_raw(ctx.vm().cast()) }) else { return false; };
+    let Ok(mut env) = vm.attach_current_thread() else { return false; };
+    let Ok(class) = env.find_class("com/notkrishenough/cadence/PlaybackService") else { return false; };
+    env.call_static_method(class, method, signature, args).is_ok()
+}
+
+#[cfg(target_os = "android")]
+fn android_start_playback(path: &str, title: &str, artist: &str) -> bool {
+    let ctx = ndk_context::android_context();
+    let Ok(vm) = (unsafe { JavaVM::from_raw(ctx.vm().cast()) }) else { return false; };
+    let Ok(mut env) = vm.attach_current_thread() else { return false; };
+    let Ok(class) = env.find_class("com/notkrishenough/cadence/PlaybackService") else { return false; };
+    let context = unsafe { JObject::from_raw(ctx.context().cast()) };
+    let Ok(path) = env.new_string(path) else { return false; };
+    let Ok(title) = env.new_string(title) else { return false; };
+    let Ok(artist) = env.new_string(artist) else { return false; };
+    env.call_static_method(
+        class,
+        "startPlayback",
+        "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+        &[
+            JValue::Object(&context),
+            JValue::Object(&path),
+            JValue::Object(&title),
+            JValue::Object(&artist),
+        ],
+    ).is_ok()
+}
+
+#[cfg(target_os = "android")]
+fn android_control(method: &str) -> bool {
+    let ctx = ndk_context::android_context();
+    let Ok(vm) = (unsafe { JavaVM::from_raw(ctx.vm().cast()) }) else { return false; };
+    let Ok(mut env) = vm.attach_current_thread() else { return false; };
+    let Ok(class) = env.find_class("com/notkrishenough/cadence/PlaybackService") else { return false; };
+    let context = unsafe { JObject::from_raw(ctx.context().cast()) };
+    env.call_static_method(
+        class,
+        method,
+        "(Landroid/content/Context;)V",
+        &[JValue::Object(&context)],
+    ).is_ok()
 }
 
 impl Player {
@@ -85,6 +135,17 @@ impl Player {
     fn play_current(&mut self) {
         if self.tracks.is_empty() { return; }
         self.sink = None; self.stream = None;
+        #[cfg(target_os = "android")]
+        {
+            let track = &self.tracks[self.index];
+            if android_start_playback(&track.path, &track.title, &track.artist) {
+                self.sink = None;
+                self.stream = None;
+                self.playing = true;
+                return;
+            }
+        }
+
         let Ok(stream) = rodio::OutputStreamBuilder::open_default_stream() else { return; };
         let Ok(file) = std::fs::File::open(&self.tracks[self.index].path) else { return; };
         let Ok(source) = rodio::Decoder::try_from(file) else { return; };
@@ -93,6 +154,16 @@ impl Player {
         self.stream = Some(stream); self.sink = Some(sink); self.playing = true;
     }
     fn toggle(&mut self) {
+        #[cfg(target_os = "android")]
+        if self.sink.is_none() {
+            if self.playing {
+                if android_control("pausePlayback") { self.playing = false; return; }
+            } else if android_control("resumePlayback") {
+                self.playing = true;
+                return;
+            }
+        }
+
         if let Some(sink) = &self.sink {
             if self.playing { sink.pause(); self.playing = false; } else { sink.play(); self.playing = true; }
         } else { self.play_current(); }
