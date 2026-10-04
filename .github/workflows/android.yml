@@ -1,0 +1,29 @@
+name: Android
+
+on:
+  push:
+    branches: ["main", "rust-miui-player"]
+  pull_request:
+    branches: ["main", "rust-miui-player"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          target: aarch64-linux-android
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK components
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018"
+
+      - name: Install cargo-apk
+        run: cargo install cargo-apk
+
+      - name: Build
+        run: cargo apk build --target aarch64-linux-android --lib --release
