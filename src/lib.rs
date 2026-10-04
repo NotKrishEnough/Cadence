@@ -1,8 +1,7 @@
 slint::include_modules!();
 
+use lofty::prelude::Accessor;
 use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
 
 #[derive(Clone)]
 struct Track {
@@ -148,16 +147,6 @@ fn run_app() {
         if let Ok(mut p) = p.lock() {
             p.scan_music();
             if let Some(ui) = weak.upgrade() { update_ui(&ui, &p); }
-        }
-    });
-
-    thread::spawn(move || loop {
-        thread::sleep(Duration::from_millis(500));
-        if let Ok(mut p) = player.lock() {
-            if p.playing && p.sink.as_ref().is_some_and(|s| s.empty()) {
-                p.next();
-                if let Some(ui) = weak.upgrade() { update_ui(&ui, &p); }
-            }
         }
     });
 
