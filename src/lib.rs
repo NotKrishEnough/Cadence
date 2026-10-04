@@ -141,8 +141,6 @@ fn run_app() {
         }
     });
 
-    let p = player.clone();
-    let weak = ui.as_weak();
     let weak = ui.as_weak();
     ui.on_open_library(move || {
         if let Some(ui) = weak.upgrade() { ui.set_screen(1); }
