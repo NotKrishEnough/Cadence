@@ -24,6 +24,7 @@ slint-build = "1.18.1"
 [package.metadata.android]
 package = "com.notkrishenough.cadence"
 java_sources = "java"
+manifest_override = "AndroidManifest.xml"
 
 [package.metadata.android.sdk]
 min_sdk_version = 26
@@ -47,16 +48,3 @@ name = "android.permission.POST_NOTIFICATIONS"
 
 [package.metadata.android.application]
 label = "Cadence"
-
-[[package.metadata.android.application.activity]]
-exported = true
-
-[[package.metadata.android.application.activity.intent_filter]]
-actions = ["android.intent.action.MAIN"]
-categories = ["android.intent.category.LAUNCHER"]
-
-[[package.metadata.android.application.service]]
-name = ".PlaybackService"
-enabled = true
-exported = false
-foreground_service_type = "mediaPlayback"
