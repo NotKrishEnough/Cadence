@@ -7,7 +7,7 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-slint = { version = "1.18.1", features = ["backend-android-activity-06", "image-decoders"] }
+slint = { version = "1.18.1", features = ["backend-android-activity-06", "image-default-formats"] }
 rodio = { version = "0.22.2", default-features = false, features = ["playback", "symphonia-all"] }
 walkdir = "2.5"
 lofty = "0.22"
