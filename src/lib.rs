@@ -34,8 +34,14 @@ fn android_service_call(method_name: &str) -> bool {
     with_android_env(|env, ctx| {
         let Ok(class) = env.find_class(jni_str!("com/notkrishenough/cadence/PlaybackService")) else { return false; };
         let context = unsafe { JObject::from_raw(env, ctx.context().cast()) };
+        let method = match method_name {
+            "pausePlayback" => jni_str!("pausePlayback"),
+            "resumePlayback" => jni_str!("resumePlayback"),
+            "stopPlayback" => jni_str!("stopPlayback"),
+            _ => return false,
+        };
         let result = env.call_static_method(
-            class, method_name, jni_sig!("(android.content.Context)"),
+            class, method, jni_sig!("(android.content.Context)"),
             &[JValue::Object(&context)],
         ).is_ok();
         std::mem::forget(context);
@@ -46,7 +52,7 @@ fn android_service_call(method_name: &str) -> bool {
 #[cfg(target_os = "android")]
 fn android_start_playback(path: &str, title: &str, artist: &str) -> bool {
     with_android_env(|env, ctx| {
-        let Ok(class) = env.find_class("com/notkrishenough/cadence/PlaybackService") else { return false; };
+        let Ok(class) = env.find_class(jni_str!("com/notkrishenough/cadence/PlaybackService")) else { return false; };
         let context = unsafe { JObject::from_raw(env, ctx.context().cast()) };
         let Ok(path) = env.new_string(path) else { std::mem::forget(context); return false; };
         let Ok(title) = env.new_string(title) else { std::mem::forget(context); return false; };
