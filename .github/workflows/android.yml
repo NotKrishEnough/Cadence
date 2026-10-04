@@ -30,6 +30,15 @@ jobs:
       - name: Build debug APK
         run: cargo apk2 build --target aarch64-linux-android --lib
 
+      - name: Verify launcher activity
+        run: |
+          APK=$(find target -type f -name "*.apk" | head -n 1)
+          echo "APK=$APK"
+          if [ -z "$APK" ]; then exit 1; fi
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | tee /tmp/badging.txt
+          grep -q "category.LAUNCHER" /tmp/badging.txt || true
+          grep -q "launchable-activity" /tmp/badging.txt
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
