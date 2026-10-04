@@ -1,0 +1,23 @@
+[package]
+name = "cadence"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+slint = { version = "1.18.1", features = ["backend-android-activity-06"] }
+rodio = { version = "0.22.2", default-features = false, features = ["playback", "symphonia-all"] }
+walkdir = "2.5"
+lofty = "0.22"
+parking_lot = "0.12"
+
+[build-dependencies]
+slint-build = "1.18.1"
+
+[package.metadata.android]
+package = "com.notkrishenough.cadence"
+label = "Cadence"
+min_sdk_version = 26
+target_sdk_version = 35
