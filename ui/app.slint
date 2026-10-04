@@ -101,7 +101,7 @@ export component MainWindow inherits Window {
                     }
                     Flickable {
                         vertical-stretch: 1;
-                        viewport-height: self.height;
+                        content-height: self.height;
                         for song in library-songs : TouchArea {
                             height: 68px;
                             clicked => { select-song(song.path); }
@@ -110,9 +110,8 @@ export component MainWindow inherits Window {
                                 HorizontalBox { padding: 8px; spacing: 11px;
                                     Image { source: song.artwork; width: 52px; height: 52px; image-fit: cover; }
                                     VerticalBox {
-                                        vertical-alignment: center;
-                                        Text { text: song.title; color: #f3f3f4; font-size: 14px; font-weight: 700; elide: right; }
-                                        Text { text: song.artist + " • " + song.album; color: #8f939e; font-size: 11px; elide: right; }
+                                        Text { text: song.title; color: #f3f3f4; font-size: 14px; font-weight: 700; }
+                                        Text { text: song.artist + " • " + song.album; color: #8f939e; font-size: 11px; }
                                     }
                                 }
                             }
@@ -144,12 +143,12 @@ export component MainWindow inherits Window {
                 VerticalBox { padding: 14px; spacing: 8px;
                     Text { text: queue-count + " songs in queue"; color: #f4f4f6; font-size: 20px; font-weight: 700; }
                     Flickable {
-                        vertical-stretch: 1; viewport-height: self.height;
+                        vertical-stretch: 1; content-height: self.height;
                         for song in queue-songs : Rectangle {
                             height: 58px; border-radius: 14px; background: #1d2026;
                             HorizontalBox { padding: 10px; spacing: 10px;
                                 Text { text: "♪"; color: #ff7a18; font-size: 20px; vertical-alignment: center; }
-                                VerticalBox { Text { text: song.title; color: #eeeeef; font-size: 13px; font-weight: 700; elide: right; } Text { text: song.artist; color: #858994; font-size: 11px; elide: right; } }
+                                VerticalBox { Text { text: song.title; color: #eeeeef; font-size: 13px; font-weight: 700; } Text { text: song.artist; color: #858994; font-size: 11px; } }
                             }
                         }
                     }
@@ -168,10 +167,10 @@ export component MainWindow inherits Window {
                         }
                     }
                     HorizontalBox { height: 28px;
-                        Text { text: track-title; color: #f7f7f8; font-size: 20px; font-weight: 700; elide: right; horizontal-stretch: 1; }
+                        Text { text: track-title; color: #f7f7f8; font-size: 20px; font-weight: 700; horizontal-stretch: 1; }
                         TouchArea { width: 36px; clicked => { toggle-favorite(); } Text { text: favorite ? "♥" : "♡"; color: #ff7a18; font-size: 22px; horizontal-alignment: center; vertical-alignment: center; } }
                     }
-                    Text { text: track-artist + " • " + album-title; color: #9da1ac; font-size: 13px; elide: right; }
+                    Text { text: track-artist + " • " + album-title; color: #9da1ac; font-size: 13px; }
                     HorizontalBox { height: 58px; spacing: 22px;
                         TouchArea { clicked => { previous(); } Text { text: "‹"; color: #e7e8eb; font-size: 38px; horizontal-alignment: center; vertical-alignment: center; } }
                         TouchArea { width: 62px; clicked => { play-pause(); } Rectangle { border-radius: 31px; background: #ff7a18; Text { text: playing ? "Ⅱ" : "▶"; color: #101114; font-size: 21px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; } } }
