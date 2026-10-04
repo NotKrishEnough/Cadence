@@ -28,4 +28,4 @@ jobs:
         run: cargo install cargo-apk2
 
       - name: Build
-        run: cargo apk2 build --target aarch64-linux-android --lib --release
+        run: cargo apk2 build --target aarch64-linux-android --lib --debug
