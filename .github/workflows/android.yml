@@ -23,7 +23,7 @@ jobs:
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018"
 
       - name: Install cargo-apk
-        run: cargo install cargo-apk
+        run: cargo install cargo-apk2
 
       - name: Build
-        run: cargo apk build --target aarch64-linux-android --lib --release
+        run: cargo apk2 build --target aarch64-linux-android --lib --release
