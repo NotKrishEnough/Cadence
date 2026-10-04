@@ -11,7 +11,6 @@ slint = { version = "1.18.1", features = ["backend-android-activity-06"] }
 rodio = { version = "0.22.2", default-features = false, features = ["playback", "symphonia-all"] }
 walkdir = "2.5"
 lofty = "0.22"
-parking_lot = "0.12"
 
 [build-dependencies]
 slint-build = "1.18.1"
@@ -21,3 +20,7 @@ package = "com.notkrishenough.cadence"
 label = "Cadence"
 min_sdk_version = 26
 target_sdk_version = 35
+uses_permission = [
+  "android.permission.READ_MEDIA_AUDIO",
+  "android.permission.READ_EXTERNAL_STORAGE"
+]
