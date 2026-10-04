@@ -1,0 +1,55 @@
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+
+export struct Song { title: string, artist: string, album: string, path: string, artwork: image }
+export struct QueueSong { title: string, artist: string }
+
+export component MainWindow inherits Window {
+    width: 420px; height: 860px; background: #0d0e11; title: "Cadence";
+    in-out property <string> track-title: "No music yet"; in-out property <string> track-artist: "Add songs to /Music"; in-out property <string> album-title: "Cadence";
+    in-out property <image> current-artwork; in-out property <int> library-count: 0; in-out property <int> playlist-count: 0; in-out property <int> queue-count: 0;
+    in-out property <bool> playing: false; in-out property <bool> favorite: false; in-out property <int> screen: 0;
+    in-out property <[Song]> library-songs; in-out property <[QueueSong]> queue-songs;
+    callback play-pause(); callback next(); callback previous(); callback rescan(); callback select-song(string); callback toggle-favorite(); callback open-library(); callback open-playlists(); callback open-player(); callback open-queue(); callback go-back();
+
+    Rectangle { background: #0d0e11;
+        VerticalBox { padding-left: 16px; padding-right: 16px; padding-top: 18px; padding-bottom: 10px; spacing: 10px;
+            HorizontalBox { height: 42px;
+                if screen != 0 : TouchArea { width: 44px; clicked => { go-back(); } Text { text: "‹"; color: #f7f7f8; font-size: 34px; horizontal-alignment: center; vertical-alignment: center; } }
+                Text { text: screen == 2 ? "Playlists" : screen == 1 ? "Library" : screen == 3 ? "Queue" : "Cadence"; color: #f7f7f8; font-size: 27px; font-weight: 700; vertical-alignment: center; }
+                Rectangle { horizontal-stretch: 1; }
+                TouchArea { width: 44px; clicked => { open-queue(); } Text { text: "≡"; color: #d4d6dc; font-size: 25px; horizontal-alignment: center; vertical-alignment: center; } }
+            }
+
+            if screen == 0 : Rectangle { height: 46px; border-radius: 15px; background: #191b20; TouchArea { clicked => { open-library(); } HorizontalBox { padding-left: 14px; spacing: 10px; Text { text: "⌕"; color: #9fa3ae; font-size: 22px; vertical-alignment: center; } Text { text: "Search your music"; color: #70747f; font-size: 14px; vertical-alignment: center; } } } }
+            if screen == 0 : HorizontalBox { height: 38px; spacing: 8px;
+                Rectangle { width: 86px; border-radius: 19px; background: #ff7a18; Text { text: "Home"; color: #101114; font-size: 13px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; } }
+                TouchArea { width: 98px; clicked => { open-library(); } Rectangle { border-radius: 19px; background: #1a1c21; Text { text: "Library"; color: #d4d6dc; font-size: 13px; horizontal-alignment: center; vertical-alignment: center; } } }
+                TouchArea { width: 106px; clicked => { open-playlists(); } Rectangle { border-radius: 19px; background: #1a1c21; Text { text: "Playlists"; color: #d4d6dc; font-size: 13px; horizontal-alignment: center; vertical-alignment: center; } } }
+            }
+
+            if screen == 1 : Rectangle { vertical-stretch: 1; border-radius: 22px; background: #15171c; VerticalBox { padding: 12px; spacing: 7px;
+                HorizontalBox { height: 32px; Text { text: library-count + " songs"; color: #f4f4f6; font-size: 19px; font-weight: 700; } Rectangle { horizontal-stretch: 1; } TouchArea { width: 72px; clicked => { rescan(); } Text { text: "Rescan"; color: #ff8a32; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; } } }
+                Flickable { vertical-stretch: 1; content-height: self.height; for song in library-songs : TouchArea { height: 62px; clicked => { select-song(song.path); } Rectangle { border-radius: 14px; background: #1d2026; HorizontalBox { padding: 7px; spacing: 10px; Image { source: song.artwork; width: 48px; height: 48px; image-fit: cover; } VerticalBox { Text { text: song.title; color: #f3f3f4; font-size: 13px; font-weight: 700; } Text { text: song.artist + " • " + song.album; color: #8f939e; font-size: 10px; } } } } } }
+            } } }
+
+            if screen == 2 : Rectangle { vertical-stretch: 1; border-radius: 22px; background: #15171c; VerticalBox { padding: 16px; spacing: 10px;
+                Text { text: "Your playlists"; color: #f4f4f6; font-size: 20px; font-weight: 700; }
+                Rectangle { height: 68px; border-radius: 16px; background: #1d2026; HorizontalBox { padding: 12px; spacing: 10px; Text { text: "♡"; color: #ff7a18; font-size: 27px; vertical-alignment: center; } VerticalBox { Text { text: "Favorites"; color: #eeeeef; font-size: 15px; font-weight: 700; } Text { text: playlist-count + " saved songs"; color: #858994; font-size: 11px; } } } TouchArea { clicked => { open-library(); } } }
+                Rectangle { height: 68px; border-radius: 16px; background: #1d2026; Text { text: "＋   Create playlist"; color: #eeeeef; font-size: 15px; vertical-alignment: center; } }
+                Rectangle { vertical-stretch: 1; }
+            } } }
+
+            if screen == 3 : Rectangle { vertical-stretch: 1; border-radius: 22px; background: #15171c; VerticalBox { padding: 12px; spacing: 7px; Text { text: queue-count + " songs in queue"; color: #f4f4f6; font-size: 19px; font-weight: 700; } Flickable { vertical-stretch: 1; content-height: self.height; for song in queue-songs : Rectangle { height: 54px; border-radius: 13px; background: #1d2026; HorizontalBox { padding: 9px; spacing: 9px; Text { text: "♪"; color: #ff7a18; font-size: 19px; vertical-alignment: center; } VerticalBox { Text { text: song.title; color: #eeeeef; font-size: 13px; font-weight: 700; } Text { text: song.artist; color: #858994; font-size: 10px; } } } } } } } }
+
+            if screen == 0 : Rectangle { vertical-stretch: 1; }
+            if screen == 0 : Rectangle { height: 286px; border-radius: 26px; background: #181a20; VerticalBox { padding: 14px; spacing: 6px;
+                TouchArea { height: 158px; clicked => { open-player(); } Rectangle { border-radius: 20px; background: #252832; Image { source: current-artwork; width: 100%; height: 100%; image-fit: cover; } Text { text: current-artwork.width > 0 ? "" : "♪"; color: #ff7a18; font-size: 62px; horizontal-alignment: center; vertical-alignment: center; } } }
+                HorizontalBox { height: 25px; Text { text: track-title; color: #f7f7f8; font-size: 18px; font-weight: 700; horizontal-stretch: 1; } TouchArea { width: 34px; clicked => { toggle-favorite(); } Text { text: favorite ? "♥" : "♡"; color: #ff7a18; font-size: 20px; horizontal-alignment: center; vertical-alignment: center; } } }
+                Text { text: track-artist + " • " + album-title; color: #9da1ac; font-size: 12px; }
+                HorizontalBox { height: 45px; spacing: 18px; TouchArea { clicked => { previous(); } Text { text: "‹"; color: #e7e8eb; font-size: 33px; horizontal-alignment: center; vertical-alignment: center; } } TouchArea { width: 56px; clicked => { play-pause(); } Rectangle { border-radius: 28px; background: #ff7a18; Text { text: playing ? "Ⅱ" : "▶"; color: #101114; font-size: 19px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; } } } TouchArea { clicked => { next(); } Text { text: "›"; color: #e7e8eb; font-size: 33px; horizontal-alignment: center; vertical-alignment: center; } } }
+            } }
+
+            HorizontalBox { height: 42px; TouchArea { clicked => { open-player(); } Text { text: "⌂"; color: screen == 0 ? #ff7a18 : #777b86; font-size: 21px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; } } TouchArea { clicked => { open-library(); } Text { text: "♫"; color: screen == 1 ? #ff7a18 : #777b86; font-size: 21px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; } } TouchArea { clicked => { open-playlists(); } Text { text: "♡"; color: screen == 2 ? #ff7a18 : #777b86; font-size: 20px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; } } TouchArea { clicked => { open-queue(); } Text { text: "≡"; color: screen == 3 ? #ff7a18 : #777b86; font-size: 19px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; } } }
+        }
+    }
+}

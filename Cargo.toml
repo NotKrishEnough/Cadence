@@ -7,17 +7,44 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-slint = { version = "1.18.1", features = ["backend-android-activity-06"] }
+slint = { version = "1.18.1", features = ["backend-android-activity-06", "image-default-formats"] }
 rodio = { version = "0.22.2", default-features = false, features = ["playback", "symphonia-all"] }
 walkdir = "2.5"
 lofty = "0.22"
-parking_lot = "0.12"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.22.4"
+ndk-context = "0.1"
 
 [build-dependencies]
 slint-build = "1.18.1"
 
 [package.metadata.android]
 package = "com.notkrishenough.cadence"
-label = "Cadence"
+java_sources = "java"
+manifest_override = "AndroidManifest.xml"
+
+[package.metadata.android.sdk]
 min_sdk_version = 26
 target_sdk_version = 35
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.READ_MEDIA_AUDIO"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.READ_EXTERNAL_STORAGE"
+max_sdk_version = 32
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.FOREGROUND_SERVICE"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.POST_NOTIFICATIONS"
+
+[package.metadata.android.application]
+label = "Cadence"
