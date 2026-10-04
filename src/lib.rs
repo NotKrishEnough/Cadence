@@ -135,7 +135,7 @@ impl Player {
 fn make_song_model(p: &Player) -> ModelRc<Song> {
     VecModel::from(p.tracks.iter().map(|t| Song {
         title: t.title.clone().into(), artist: t.artist.clone().into(), album: t.album.clone().into(),
-        artwork: t.artwork.as_ref().and_then(|x| Image::load_from_path(x).ok()).unwrap_or_default()
+        path: t.path.clone().into(), artwork: t.artwork.as_ref().and_then(|x| Image::load_from_path(x).ok()).unwrap_or_default()
     }).collect::<Vec<_>>()).into()
 }
 fn make_queue_model(p: &Player) -> ModelRc<QueueSong> {
