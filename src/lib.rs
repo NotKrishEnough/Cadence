@@ -143,6 +143,28 @@ fn run_app() {
 
     let p = player.clone();
     let weak = ui.as_weak();
+    let weak = ui.as_weak();
+    ui.on_open_library(move || {
+        if let Some(ui) = weak.upgrade() { ui.set_screen(1); }
+    });
+
+    let weak = ui.as_weak();
+    ui.on_open_playlists(move || {
+        if let Some(ui) = weak.upgrade() { ui.set_screen(2); }
+    });
+
+    let weak = ui.as_weak();
+    ui.on_open_player(move || {
+        if let Some(ui) = weak.upgrade() { ui.set_screen(0); }
+    });
+
+    let weak = ui.as_weak();
+    ui.on_open_queue(move || {
+        if let Some(ui) = weak.upgrade() { ui.set_screen(0); }
+    });
+
+    let p = player.clone();
+    let weak = ui.as_weak();
     ui.on_rescan(move || {
         if let Ok(mut p) = p.lock() {
             p.scan_music();
