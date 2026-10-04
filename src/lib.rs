@@ -249,6 +249,7 @@ fn run_app() {
     let weak = ui.as_weak(); ui.on_open_playlists(move || {if let Some(ui)=weak.upgrade(){ui.set_screen(2);}});
     let weak = ui.as_weak(); ui.on_open_player(move || {if let Some(ui)=weak.upgrade(){ui.set_screen(0);}});
     let weak = ui.as_weak(); ui.on_open_queue(move || {if let Some(ui)=weak.upgrade(){ui.set_screen(3);}});
+    let weak = ui.as_weak(); ui.on_go_back(move || {if let Some(ui)=weak.upgrade(){ui.set_screen(0);}});
     ui.run().unwrap();
 }
 
