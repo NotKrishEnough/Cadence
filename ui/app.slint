@@ -41,6 +41,7 @@ export component MainWindow inherits Window {
     callback open-playlists();
     callback open-player();
     callback open-queue();
+    callback go-back();
 
     Rectangle {
         background: #0d0e11;
@@ -53,6 +54,10 @@ export component MainWindow inherits Window {
 
             HorizontalBox {
                 height: 44px;
+                if screen != 0 : TouchArea {
+                    width: 42px; clicked => { go-back(); }
+                    Text { text: "‹"; color: #f7f7f8; font-size: 34px; horizontal-alignment: center; vertical-alignment: center; }
+                }
                 Text {
                     text: screen == 2 ? "Playlists" : screen == 1 ? "Library" : screen == 3 ? "Queue" : "Cadence";
                     color: #f7f7f8; font-size: 28px; font-weight: 700; vertical-alignment: center;
@@ -179,12 +184,12 @@ export component MainWindow inherits Window {
                 }
             }
 
-            if screen == 0 : HorizontalBox {
+            HorizontalBox {
                 height: 48px;
-                Text { text: "⌂"; color: #ff7a18; font-size: 23px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; }
-                TouchArea { clicked => { open-library(); } Text { text: "♫"; color: #777b86; font-size: 23px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; } }
-                TouchArea { clicked => { open-playlists(); } Text { text: "♡"; color: #777b86; font-size: 22px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; } }
-                TouchArea { clicked => { open-queue(); } Text { text: "≡"; color: #777b86; font-size: 21px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; } }
+                TouchArea { clicked => { open-player(); } Text { text: "⌂"; color: screen == 0 ? #ff7a18 : #777b86; font-size: 23px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; } }
+                TouchArea { clicked => { open-library(); } Text { text: "♫"; color: screen == 1 ? #ff7a18 : #777b86; font-size: 23px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; } }
+                TouchArea { clicked => { open-playlists(); } Text { text: "♡"; color: screen == 2 ? #ff7a18 : #777b86; font-size: 22px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; } }
+                TouchArea { clicked => { open-queue(); } Text { text: "≡"; color: screen == 3 ? #ff7a18 : #777b86; font-size: 21px; horizontal-alignment: center; vertical-alignment: center; horizontal-stretch: 1; } }
             }
         }
     }
