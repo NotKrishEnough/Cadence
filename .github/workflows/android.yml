@@ -27,5 +27,14 @@ jobs:
       - name: Install cargo-apk
         run: cargo install cargo-apk2
 
-      - name: Build
-        run: cargo apk2 build --target aarch64-linux-android --lib --debug
+      - name: Build debug APK
+        run: cargo apk2 build --target aarch64-linux-android --lib
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: cadence-debug-apk
+          path: |
+            target/**/apk/*.apk
+            target/**/*.apk
+          if-no-files-found: error
