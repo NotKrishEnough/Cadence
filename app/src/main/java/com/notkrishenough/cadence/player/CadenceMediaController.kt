@@ -4,7 +4,6 @@ import android.content.ComponentName
 import android.content.Context
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import com.notkrishenough.cadence.MainActivity
 import com.google.common.util.concurrent.ListenableFuture
 
 object CadenceMediaController {
