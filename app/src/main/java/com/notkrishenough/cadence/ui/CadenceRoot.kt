@@ -376,21 +376,27 @@ private fun FloatingNav(selected: Int, onSelected: (Int) -> Unit) {
         Icons.Default.Album to "Albums",
         Icons.Default.Settings to "Settings"
     )
-    Surface(
-        Modifier.align(Alignment.BottomCenter).padding(horizontal = 18.dp, vertical = 12.dp),
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        tonalElevation = 6.dp
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(horizontal = 18.dp, vertical = 12.dp),
+        contentAlignment = Alignment.BottomCenter
     ) {
-        Row(Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
-            items.forEachIndexed { index, item ->
-                NavigationBarItem(
-                    selected = selected == index,
-                    onClick = { onSelected(index) },
-                    icon = { Icon(item.first, null) },
-                    label = { Text(item.second) },
-                    alwaysShowLabel = false
-                )
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp
+        ) {
+            Row(Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
+                items.forEachIndexed { index, item ->
+                    NavigationBarItem(
+                        selected = selected == index,
+                        onClick = { onSelected(index) },
+                        icon = { Icon(item.first, null) },
+                        label = { Text(item.second) },
+                        alwaysShowLabel = false
+                    )
+                }
             }
         }
     }
