@@ -26,3 +26,19 @@ jobs:
           gradle-version: "8.9"
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug --stacktrace
+
+      - name: Find APK
+        id: apk
+        run: |
+          APK=$(find app/build/outputs/apk -type f -name "*.apk" | head -n 1)
+          test -n "$APK"
+          echo "path=$APK" >> "$GITHUB_OUTPUT"
+          echo "Built APK: $APK"
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cadence-debug
+          path: ${{ steps.apk.outputs.path }}
+          if-no-files-found: error
+          retention-days: 14
