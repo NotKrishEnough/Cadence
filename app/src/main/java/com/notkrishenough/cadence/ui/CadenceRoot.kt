@@ -214,3 +214,6 @@ private fun format(ms: Long): String {
     val total = ms / 1000
     return "%d:%02d".format(total / 60, total % 60)
 }
+
+
+// Completed feature layer is maintained in this branch.
